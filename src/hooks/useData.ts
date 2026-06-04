@@ -69,11 +69,19 @@ export function useStats(data: DataSet | null) {
       return d.dateMaj > latest ? d.dateMaj : latest;
     }, '');
 
+    const deptByCode = new Map<string, number>();
+    for (const d of domaines) {
+      if (d.codeDepartement) {
+        deptByCode.set(d.codeDepartement, (deptByCode.get(d.codeDepartement) || 0) + 1);
+      }
+    }
+
     return {
       totalEntries: domaines.length,
       uniqueDomains,
       operateurs,
       departements,
+      deptByCode,
       timeline,
       monthly,
       nbOperateurs: operateurs.length,

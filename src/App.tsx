@@ -8,6 +8,7 @@ import { DepartementsChart } from './components/DepartementsChart';
 import { DepartementsTable } from './components/DepartementsTable';
 import { TimelineChart } from './components/TimelineChart';
 import { DataTable } from './components/DataTable';
+import { FranceMap } from './components/FranceMap';
 import type { TabId } from './types';
 
 const tabs: { id: TabId; label: string; icon: typeof BarChart3 }[] = [
@@ -117,7 +118,12 @@ function App() {
         )}
 
         {activeTab === 'operateurs' && <OperateursTable data={stats.operateurs} />}
-        {activeTab === 'departements' && <DepartementsTable data={stats.departements} />}
+        {activeTab === 'departements' && (
+          <div className="space-y-6">
+            <FranceMap data={stats.deptByCode} />
+            <DepartementsTable data={stats.departements} />
+          </div>
+        )}
         {activeTab === 'timeline' && <TimelineChart data={stats.timeline} monthly={stats.monthly} />}
         {activeTab === 'explorer' && <DataTable domaines={data.domaines} />}
       </main>

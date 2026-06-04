@@ -1,4 +1,4 @@
-import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from 'recharts';
+import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer } from 'recharts';
 import type { ChartEntry } from '../types';
 
 const COLORS = [
@@ -12,9 +12,10 @@ interface Props {
   top?: number;
 }
 
-export function DepartementsChart({ data, top = 12 }: Props) {
+export function DepartementsChart({ data, top = 10 }: Props) {
   const topItems = data.slice(0, top);
   const otherTotal = data.slice(top).reduce((s, d) => s + d.value, 0);
+  const total = data.reduce((s, d) => s + d.value, 0);
   const chartData = otherTotal > 0
     ? [...topItems, { name: `Autres (${data.length - top})`, value: otherTotal }]
     : topItems;
@@ -23,32 +24,42 @@ export function DepartementsChart({ data, top = 12 }: Props) {
     <div className="bg-white rounded-xl shadow-sm border border-gray-100 p-6">
       <h3 className="text-lg font-semibold text-gray-900 mb-1">Répartition par Département</h3>
       <p className="text-sm text-gray-500 mb-4">Localisation des opérateurs de messagerie</p>
-      <ResponsiveContainer width="100%" height={400}>
-        <PieChart>
-          <Pie
-            data={chartData}
-            cx="50%"
-            cy="50%"
-            outerRadius={140}
-            innerRadius={60}
-            dataKey="value"
-            nameKey="name"
-            label={({ name, percent }) =>
-              `${name.length > 15 ? name.slice(0, 13) + '…' : name} (${(percent * 100).toFixed(0)}%)`
-            }
-            labelLine={true}
-          >
-            {chartData.map((_, i) => (
-              <Cell key={i} fill={COLORS[i % COLORS.length]} />
-            ))}
-          </Pie>
-          <Tooltip
-            formatter={(value: number) => [value.toLocaleString('fr-FR'), 'Entrées']}
-            contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb' }}
-          />
-          <Legend />
-        </PieChart>
-      </ResponsiveContainer>
+
+      <div className="flex flex-col sm:flex-row items-center gap-4">
+        <ResponsiveContainer width="100%" height={300} className="sm:max-w-[300px]">
+          <PieChart>
+            <Pie
+              data={chartData}
+              cx="50%"
+              cy="50%"
+              outerRadius={120}
+              innerRadius={55}
+              dataKey="value"
+              nameKey="name"
+              paddingAngle={1}
+            >
+              {chartData.map((_, i) => (
+                <Cell key={i} fill={COLORS[i % COLORS.length]} />
+              ))}
+            </Pie>
+            <Tooltip
+              formatter={(value) => [Number(value).toLocaleString('fr-FR'), 'Entrées']}
+              contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb', fontSize: 13 }}
+            />
+          </PieChart>
+        </ResponsiveContainer>
+
+        <div className="flex-1 min-w-0 space-y-1.5 w-full">
+          {chartData.map((d, i) => (
+            <div key={d.name} className="flex items-center gap-2 text-sm">
+              <div className="w-2.5 h-2.5 rounded-sm flex-shrink-0" style={{ backgroundColor: COLORS[i % COLORS.length] }} />
+              <span className="text-gray-700 truncate flex-1">{d.name}</span>
+              <span className="font-mono text-gray-900 tabular-nums">{d.value.toLocaleString('fr-FR')}</span>
+              <span className="text-gray-400 text-xs w-10 text-right">{((d.value / total) * 100).toFixed(0)}%</span>
+            </div>
+          ))}
+        </div>
+      </div>
     </div>
   );
 }

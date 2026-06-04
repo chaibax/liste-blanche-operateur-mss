@@ -44,7 +44,7 @@ export function OperateursTable({ data }: Props) {
               <XAxis dataKey="name" tick={{ fontSize: 9 }} angle={-45} textAnchor="end" height={100} />
               <YAxis tick={{ fontSize: 12 }} />
               <Tooltip
-                formatter={(value: number) => [value.toLocaleString('fr-FR'), 'Domaines']}
+                formatter={(value) => [Number(value).toLocaleString('fr-FR'), 'Domaines']}
                 contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb' }}
               />
               <Bar dataKey="value" fill="#6366f1" radius={[4, 4, 0, 0]} />

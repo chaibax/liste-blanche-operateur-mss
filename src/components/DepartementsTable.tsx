@@ -50,7 +50,7 @@ export function DepartementsTable({ data }: Props) {
                 tickFormatter={(v: string) => v.length > 22 ? v.slice(0, 20) + '…' : v}
               />
               <Tooltip
-                formatter={(value: number) => [value.toLocaleString('fr-FR'), 'Entrées']}
+                formatter={(value) => [Number(value).toLocaleString('fr-FR'), 'Entrées']}
                 contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb' }}
               />
               <Bar dataKey="value" fill="#f59e0b" radius={[0, 4, 4, 0]} />

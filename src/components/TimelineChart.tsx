@@ -24,7 +24,7 @@ export function TimelineChart({ data, monthly }: Props) {
             <XAxis dataKey="name" tick={{ fontSize: 12 }} />
             <YAxis tick={{ fontSize: 12 }} />
             <Tooltip
-              formatter={(value: number) => [value.toLocaleString('fr-FR'), 'Domaines']}
+              formatter={(value) => [Number(value).toLocaleString('fr-FR'), 'Domaines']}
               contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb' }}
             />
             <Area type="monotone" dataKey="value" stroke="#3b82f6" fill="url(#colorYear)" strokeWidth={2} />
@@ -47,7 +47,7 @@ export function TimelineChart({ data, monthly }: Props) {
             <XAxis dataKey="name" tick={{ fontSize: 10 }} interval={Math.floor(monthly.length / 12)} />
             <YAxis tick={{ fontSize: 12 }} />
             <Tooltip
-              formatter={(value: number) => [value.toLocaleString('fr-FR'), 'Domaines']}
+              formatter={(value) => [Number(value).toLocaleString('fr-FR'), 'Domaines']}
               contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb' }}
             />
             <Area type="monotone" dataKey="value" stroke="#8b5cf6" fill="url(#colorMonth)" strokeWidth={2} />

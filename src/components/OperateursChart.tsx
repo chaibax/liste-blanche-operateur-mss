@@ -31,7 +31,7 @@ export function OperateursChart({ data, top = 15 }: Props) {
             tickFormatter={(v: string) => v.length > 30 ? v.slice(0, 28) + '…' : v}
           />
           <Tooltip
-            formatter={(value: number) => [value.toLocaleString('fr-FR'), 'Domaines']}
+            formatter={(value) => [Number(value).toLocaleString('fr-FR'), 'Domaines']}
             contentStyle={{ borderRadius: 8, border: '1px solid #e5e7eb' }}
           />
           <Bar dataKey="value" radius={[0, 4, 4, 0]}>
