@@ -1,6 +1,7 @@
 import { useState } from 'react';
 import { Shield, BarChart3, Building2, MapPin, Clock, Table2, Loader2 } from 'lucide-react';
-import { useData, useStats } from './hooks/useData';
+import { useData, useFilteredDomaines, useFilterOptions, useStats } from './hooks/useData';
+import { FilterBar } from './components/FilterBar';
 import { KpiCards } from './components/KpiCards';
 import { OperateursChart } from './components/OperateursChart';
 import { OperateursTable } from './components/OperateursTable';
@@ -9,7 +10,7 @@ import { DepartementsTable } from './components/DepartementsTable';
 import { TimelineChart } from './components/TimelineChart';
 import { DataTable } from './components/DataTable';
 import { FranceMap } from './components/FranceMap';
-import type { TabId } from './types';
+import type { TabId, Filters } from './types';
 
 const tabs: { id: TabId; label: string; icon: typeof BarChart3 }[] = [
   { id: 'overview', label: 'Vue d\'ensemble', icon: BarChart3 },
@@ -19,10 +20,16 @@ const tabs: { id: TabId; label: string; icon: typeof BarChart3 }[] = [
   { id: 'explorer', label: 'Explorer', icon: Table2 },
 ];
 
+const EMPTY_FILTERS: Filters = { dateFrom: '', dateTo: '', operateur: '', departement: '' };
+
 function App() {
   const { data, loading, error } = useData();
-  const stats = useStats(data);
+  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [activeTab, setActiveTab] = useState<TabId>('overview');
+
+  const filterOptions = useFilterOptions(data);
+  const filtered = useFilteredDomaines(data, filters);
+  const stats = useStats(filtered, data?.dateGeneration ?? null);
 
   if (loading) {
     return (
@@ -35,7 +42,7 @@ function App() {
     );
   }
 
-  if (error || !stats || !data) {
+  if (error || !data) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <div className="text-red-500 text-center">
@@ -59,8 +66,8 @@ function App() {
                 <h1 className="text-xl font-bold text-gray-900">Liste Blanche MSSanté</h1>
                 <p className="text-xs text-gray-500">
                   Espace de confiance — Généré le{' '}
-                  {stats.dateGeneration
-                    ? new Date(stats.dateGeneration).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
+                  {data.dateGeneration
+                    ? new Date(data.dateGeneration).toLocaleDateString('fr-FR', { day: 'numeric', month: 'long', year: 'numeric' })
                     : '-'}
                 </p>
               </div>
@@ -101,31 +108,57 @@ function App() {
       </header>
 
       <main className="max-w-7xl mx-auto px-4 sm:px-6 py-6">
-        {activeTab === 'overview' && (
-          <>
-            <KpiCards
-              totalEntries={stats.totalEntries}
-              uniqueDomains={stats.uniqueDomains}
-              nbOperateurs={stats.nbOperateurs}
-              nbDepartements={stats.nbDepartements}
-              latestUpdate={stats.latestUpdate}
-            />
-            <div className="grid lg:grid-cols-2 gap-6">
-              <OperateursChart data={stats.operateurs} top={10} />
-              <DepartementsChart data={stats.departements} top={10} />
-            </div>
-          </>
-        )}
+        <FilterBar
+          filters={filters}
+          onChange={setFilters}
+          operateurs={filterOptions.operateurs}
+          departements={filterOptions.departements}
+          dateMin={filterOptions.dateMin}
+          dateMax={filterOptions.dateMax}
+          filteredCount={filtered.length}
+          totalCount={data.totalDomaines}
+        />
 
-        {activeTab === 'operateurs' && <OperateursTable data={stats.operateurs} />}
-        {activeTab === 'departements' && (
-          <div className="space-y-6">
-            <FranceMap data={stats.deptByCode} />
-            <DepartementsTable data={stats.departements} />
+        {stats ? (
+          <>
+            {activeTab === 'overview' && (
+              <>
+                <KpiCards
+                  totalEntries={stats.totalEntries}
+                  uniqueDomains={stats.uniqueDomains}
+                  nbOperateurs={stats.nbOperateurs}
+                  nbDepartements={stats.nbDepartements}
+                  latestUpdate={stats.latestUpdate}
+                />
+                <div className="grid lg:grid-cols-2 gap-6 mb-6">
+                  <OperateursChart data={stats.operateurs} top={10} />
+                  <DepartementsChart data={stats.departements} top={10} />
+                </div>
+                <TimelineChart data={stats.timeline} monthly={stats.monthly} />
+              </>
+            )}
+
+            {activeTab === 'operateurs' && <OperateursTable data={stats.operateurs} />}
+            {activeTab === 'departements' && (
+              <div className="space-y-6">
+                <FranceMap data={stats.deptByCode} />
+                <DepartementsTable data={stats.departements} />
+              </div>
+            )}
+            {activeTab === 'timeline' && <TimelineChart data={stats.timeline} monthly={stats.monthly} />}
+            {activeTab === 'explorer' && <DataTable domaines={filtered} />}
+          </>
+        ) : (
+          <div className="text-center py-20 text-gray-400">
+            <p className="text-lg">Aucun résultat pour ces filtres</p>
+            <button
+              onClick={() => setFilters(EMPTY_FILTERS)}
+              className="mt-3 text-sm text-blue-600 hover:underline"
+            >
+              Réinitialiser les filtres
+            </button>
           </div>
         )}
-        {activeTab === 'timeline' && <TimelineChart data={stats.timeline} monthly={stats.monthly} />}
-        {activeTab === 'explorer' && <DataTable domaines={data.domaines} />}
       </main>
 
       <footer className="border-t border-gray-200 bg-white mt-8">

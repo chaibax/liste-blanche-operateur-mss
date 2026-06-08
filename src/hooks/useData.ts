@@ -1,5 +1,5 @@
 import { useState, useEffect, useMemo } from 'react';
-import type { DataSet, Domaine, ChartEntry } from '../types';
+import type { DataSet, Domaine, ChartEntry, Filters } from '../types';
 
 export function useData() {
   const [data, setData] = useState<DataSet | null>(null);
@@ -33,11 +33,60 @@ function countBy(items: Domaine[], key: keyof Domaine): ChartEntry[] {
     .sort((a, b) => b.value - a.value);
 }
 
-export function useStats(data: DataSet | null) {
+export function useFilteredDomaines(data: DataSet | null, filters: Filters) {
   return useMemo(() => {
-    if (!data) return null;
+    if (!data) return [];
+    let domaines = data.domaines;
 
-    const domaines = data.domaines;
+    if (filters.dateFrom) {
+      domaines = domaines.filter((d) => d.dateMaj >= filters.dateFrom);
+    }
+    if (filters.dateTo) {
+      const to = filters.dateTo + 'T23:59:59Z';
+      domaines = domaines.filter((d) => d.dateMaj <= to);
+    }
+    if (filters.operateur) {
+      domaines = domaines.filter((d) => d.operateur === filters.operateur);
+    }
+    if (filters.departement) {
+      domaines = domaines.filter((d) => d.departement === filters.departement);
+    }
+
+    return domaines;
+  }, [data, filters]);
+}
+
+export function useFilterOptions(data: DataSet | null) {
+  return useMemo(() => {
+    if (!data) return { operateurs: [], departements: [], dateMin: '', dateMax: '' };
+
+    const opSet = new Set<string>();
+    const depSet = new Set<string>();
+    let dateMin = 'Z';
+    let dateMax = '';
+
+    for (const d of data.domaines) {
+      if (d.operateur) opSet.add(d.operateur);
+      if (d.departement) depSet.add(d.departement);
+      if (d.dateMaj) {
+        if (d.dateMaj < dateMin) dateMin = d.dateMaj;
+        if (d.dateMaj > dateMax) dateMax = d.dateMaj;
+      }
+    }
+
+    return {
+      operateurs: Array.from(opSet).sort((a, b) => a.localeCompare(b, 'fr')),
+      departements: Array.from(depSet).sort((a, b) => a.localeCompare(b, 'fr')),
+      dateMin: dateMin.substring(0, 10),
+      dateMax: dateMax.substring(0, 10),
+    };
+  }, [data]);
+}
+
+export function useStats(domaines: Domaine[], dateGeneration: string | null) {
+  return useMemo(() => {
+    if (!domaines.length) return null;
+
     const uniqueDomains = new Set(domaines.map((d) => d.nom)).size;
 
     const operateurs = countBy(domaines, 'operateur');
@@ -87,7 +136,7 @@ export function useStats(data: DataSet | null) {
       nbOperateurs: operateurs.length,
       nbDepartements: departements.length,
       latestUpdate,
-      dateGeneration: data.dateGeneration,
+      dateGeneration: dateGeneration || '',
     };
-  }, [data]);
+  }, [domaines, dateGeneration]);
 }

@@ -24,4 +24,11 @@ export interface ChartEntry {
   value: number;
 }
 
+export interface Filters {
+  dateFrom: string;
+  dateTo: string;
+  operateur: string;
+  departement: string;
+}
+
 export type TabId = 'overview' | 'operateurs' | 'departements' | 'timeline' | 'explorer';
